@@ -6,7 +6,7 @@ nltk==3.9.1
 scipy==1.15.3
 rdflib==4.2.2
 torchtext==0.4.0
-scikit_learn==0.24.1
+scikit_learn==1.6.1
 numpy==2.2.6
 torch==2.7.1
 transformers==4.52.4
