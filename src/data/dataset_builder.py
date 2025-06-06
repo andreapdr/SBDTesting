@@ -75,6 +75,19 @@ class MultilingualDataset:
 
     def test(self, mask_numbers=False, target_as_csr=False):
         return self.lXte(mask_numbers), self.lYte(as_csr=target_as_csr)
+    
+    def get_whole_dataset(self, mask_numbers=False, target_as_csr=False):
+        lX, lY = self.training(mask_numbers, target_as_csr)
+        lXte, lYte = self.test(mask_numbers, target_as_csr)
+        # merge lX and lXte
+        whole_lX = {}
+        whole_lY = {}
+        for lang in self.langs():
+            whole_lX[lang] = lX[lang] + lXte[lang]
+            whole_lY[lang] = np.vstack((lY[lang], lYte[lang]))
+
+        return  whole_lX, whole_lY
+
 
     def lXtr(self, mask_numbers=False):
         proc = lambda x:_mask_numbers(x) if mask_numbers else x
@@ -143,13 +156,16 @@ class MultilingualDataset:
     def set_labels(self, labels):
         self.labels = labels
 
-    def load_from_jsonl(self, path):
+    def load_from_jsonl(self, path, is_prediction=False):
         import pandas as pd
         print(f"loading multilingual dataset from jsonl ({path=})")
         
         df = pd.read_json(path, lines=True)
-        mlb = MultiLabelBinarizer()
-        mlb.fit(df.categories)
+
+        if not is_prediction:
+            mlb = MultiLabelBinarizer()
+            mlb.fit(df.categories)
+            self.mlb = mlb
 
         langs = df.lang.unique()
         for lang in langs:
@@ -162,9 +178,12 @@ class MultilingualDataset:
 
             Xtr = [' '.join(analyzer(d)) for d in df_lang_tr.text]
             Xte = [' '.join(analyzer(d)) for d in df_lang_te.text]
-    
-            Ytr = mlb.transform(df_lang_tr.categories)
-            Yte = mlb.transform(df_lang_te.categories)
+            if not is_prediction:
+                Ytr = mlb.transform(df_lang_tr.categories)
+                Yte = mlb.transform(df_lang_te.categories)
+            else:
+                Ytr = []
+                Yte = []
 
             IDtr = df_lang_tr.id.tolist()
             IDte = df_lang_te.id.tolist()
