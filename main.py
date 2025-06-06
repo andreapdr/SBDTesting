@@ -6,7 +6,7 @@ from src.util.common import get_params
 
 def main(args):
     dataset = MultilingualDataset()
-    dataset.load_dataset(args.dataset)
+    dataset.load_from_jsonl(args.dataset)
 
     lX, lY = dataset.training()
     lXte, lYte = dataset.test()
