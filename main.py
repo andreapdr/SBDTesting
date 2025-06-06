@@ -34,8 +34,9 @@ def main(args):
     embedder_list.append(posterior_VGF)
     doc_embedders = DocEmbedderList(embedder_list=embedder_list, probabilistic=True)
     
+
     meta = MetaClassifier(meta_learner=get_learner(calibrate=False, kernel='rbf'),
-                      meta_parameters=get_params(optimc=args.optimc),
+                      meta_parameters=get_params(optimc=True if args.optimc == 1 else False),
                       n_jobs=2)
     
     gfun = Funnelling(first_tier=doc_embedders, meta_classifier=meta, n_jobs=2)
@@ -68,7 +69,7 @@ if __name__ == "__main__":
                         help="Path to the jsonl dataset file storing documents for the training phase")
     parser.add_argument("--test_path", type=str, default="data/selected_multilingual_wikinews_test.jsonl",
                         help="Path to the jsonl dataset file storing documents to be classified")
-    parser.add_argument("--optimc", action='store_true',
+    parser.add_argument("--optimc", type=int, default=0,
                         help="Optimize the meta classifier's hyperparameters")
     
     args = parser.parse_args()
